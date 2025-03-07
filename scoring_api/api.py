@@ -3,8 +3,7 @@
 import json
 import logging
 import uuid
-from argparse import ArgumentParser
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler
 from typing import TYPE_CHECKING
 
 from scoring_api.constants import (
