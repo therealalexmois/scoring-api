@@ -3,8 +3,8 @@
 from typing import TYPE_CHECKING
 
 from scoring_api.auth import check_auth
-from scoring_api.constants import ADMIN_SCORE, HTTPStatus, INVALID_REQUEST
-from scoring_api.models import HTTPErrorResponse
+from scoring_api.constants import ADMIN_SCORE, HTTPStatus
+from scoring_api.models import HTTPErrorResponse, HTTPResponse
 from scoring_api.requests import ClientsInterestsRequest, MethodRequest, OnlineScoreRequest
 from scoring_api.scoring import get_interests, get_score
 
@@ -28,18 +28,29 @@ def handle_online_score(
     score_request = OnlineScoreRequest(arguments)
 
     if not score_request.is_valid():
-        return {'error': score_request.errors}, INVALID_REQUEST
+        return HTTPErrorResponse(
+            ', '.join(f'{k}: {v}' for k, v in score_request.errors.items()), HTTPStatus.INVALID_REQUEST
+        ).as_tuple()
 
     required_pairs = [('phone', 'email'), ('first_name', 'last_name'), ('gender', 'birthday')]
 
-    if not any(score_request.validated_data.get(a) and score_request.validated_data.get(b) for a, b in required_pairs):
-        return {'error': 'At least one required pair of fields must be provided'}, INVALID_REQUEST
+    missing_pairs = [
+        f"('{a}', '{b}')"
+        for a, b in required_pairs
+        if not (score_request.validated_data.get(a) and score_request.validated_data.get(b))
+    ]
+
+    if missing_pairs:
+        return HTTPErrorResponse(
+            f'At least one of the following required field pairs must be provided: {", ".join(missing_pairs)}',
+            HTTPStatus.INVALID_REQUEST,
+        ).as_tuple()
 
     ctx['has'] = [field for field, value in score_request.validated_data.items() if value]
 
     score = ADMIN_SCORE if req.is_admin else get_score(**score_request.validated_data)
 
-    return {'score': score}, HTTPStatus.OK.value
+    return HTTPResponse({'score': score}).as_tuple()
 
 
 def handle_clients_interests(arguments: dict[str, 'Any'], ctx: dict[str, 'Any']) -> tuple[dict[str, 'Any'], int]:
@@ -55,13 +66,15 @@ def handle_clients_interests(arguments: dict[str, 'Any'], ctx: dict[str, 'Any'])
     interests_request = ClientsInterestsRequest(arguments)
 
     if not interests_request.is_valid():
-        return {'error': interests_request.errors}, INVALID_REQUEST
+        return HTTPErrorResponse(
+            ', '.join(f'{k}: {v}' for k, v in interests_request.errors.items()), HTTPStatus.INVALID_REQUEST
+        ).as_tuple()
 
     ctx['nclients'] = len(interests_request.validated_data['client_ids'])
 
     interests = get_interests(interests_request.validated_data['client_ids'])
 
-    return {'response': interests}, HTTPStatus.OK.value
+    return HTTPResponse(interests).as_tuple()
 
 
 def method_handler(
