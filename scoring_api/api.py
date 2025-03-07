@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # ruff: noqa: ANN001, ANN201, ANN204, ANN401, D100, D101, D102, D103, D107, N804
 
 import json
@@ -77,23 +75,3 @@ class APIHandler(BaseHTTPRequestHandler):
                 response, status_code = HTTPErrorResponse('Not Found', HTTPStatus.NOT_FOUND).as_tuple()
 
         self._send_response(response, status_code, context)
-
-
-if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument('-p', '--port', action='store', type=int, default=8080)
-    parser.add_argument('-l', '--log', action='store', default=None)
-    args = parser.parse_args()
-    logging.basicConfig(
-        filename=args.log,
-        level=logging.INFO,
-        format='[%(asctime)s] %(levelname).1s %(message)s',
-        datefmt='%Y.%m.%d %H:%M:%S',
-    )
-    server = HTTPServer(('localhost', args.port), APIHandler)
-    logging.info(f'Starting server at {args.port}')
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    server.server_close()

@@ -66,7 +66,7 @@ clean:
 ci-checks: lint type-check
 
 start:
-	@$(PYTHON) -m scoring_api.api $(ARGS)
+	@$(PYTHON) -m scoring_api.server $(ARGS)
 
 # Цель по умолчанию (установка зависимостей)
 default: install
