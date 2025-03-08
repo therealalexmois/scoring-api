@@ -1,3 +1,4 @@
+# ruff: noqa: D102, D107, ANN401
 """Проверка и обработка запросов."""
 
 import datetime
@@ -124,7 +125,7 @@ class ClientIDsField(Field):
 class RequestMeta(type):
     """Метакласс, в котором собраны определения полей."""
 
-    def __new__(mcls, name: str, bases: tuple, attrs: dict) -> type:
+    def __new__(cls, name: str, bases: tuple, attrs: dict) -> type:
         fields = {k: v for k, v in attrs.items() if isinstance(v, Field)}
 
         for k in fields:
@@ -132,7 +133,7 @@ class RequestMeta(type):
 
         attrs['_fields'] = fields
 
-        return super().__new__(mcls, name, bases, attrs)
+        return super().__new__(cls, name, bases, attrs)
 
 
 class BaseRequest(metaclass=RequestMeta):
@@ -187,7 +188,7 @@ class MethodRequest(BaseRequest):
     arguments: 'ClassVar[ArgumentsField]' = ArgumentsField(required=True, nullable=True)
     method: 'ClassVar[CharField]' = CharField(required=True, nullable=False)
 
-    def __init__(self, data):
+    def __init__(self, data): # noqa
         super().__init__(data)
 
     @property
