@@ -188,7 +188,7 @@ class MethodRequest(BaseRequest):
     arguments: 'ClassVar[ArgumentsField]' = ArgumentsField(required=True, nullable=True)
     method: 'ClassVar[CharField]' = CharField(required=True, nullable=False)
 
-    def __init__(self, data): # noqa
+    def __init__(self, data):  # noqa
         super().__init__(data)
 
     @property

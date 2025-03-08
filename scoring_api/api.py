@@ -56,7 +56,7 @@ class APIHandler(BaseHTTPRequestHandler):
             data_string = self.rfile.read(int(self.headers['Content-Length']))
             request = json.loads(data_string)
         except (json.JSONDecodeError, ValueError):
-            response, status_code = HTTPErrorResponse('Bad Request', HTTPStatus.BAD_REQUEST).as_tuple()
+            response, status_code = HTTPErrorResponse(HTTPStatus.BAD_REQUEST).as_tuple()
         else:
             path = self.path.strip('/')
             logging.info(f'{self.path} {data_string} {context["request_id"]}')
@@ -67,10 +67,8 @@ class APIHandler(BaseHTTPRequestHandler):
                     response, status_code = method({'body': request, 'headers': self.headers}, context, self.store)
                 except Exception as error:
                     logging.exception(f'Unexpected error: {error}')
-                    response, status_code = HTTPErrorResponse(
-                        'Internal Server Error', HTTPStatus.INTERNAL_ERROR
-                    ).as_tuple()
+                    response, status_code = HTTPErrorResponse(HTTPStatus.INTERNAL_ERROR).as_tuple()
             else:
-                response, status_code = HTTPErrorResponse('Not Found', HTTPStatus.NOT_FOUND).as_tuple()
+                response, status_code = HTTPErrorResponse(HTTPStatus.NOT_FOUND).as_tuple()
 
         self._send_response(response, status_code, context)

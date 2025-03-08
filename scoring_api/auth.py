@@ -3,11 +3,15 @@
 import datetime
 import hashlib
 import logging
+from typing import TYPE_CHECKING
 
 from scoring_api.constants import ADMIN_SALT, SALT
 
+if TYPE_CHECKING:
+    from scoring_api.requests import MethodRequest
 
-def check_auth(request) -> bool:
+
+def check_auth(request: 'MethodRequest') -> bool:
     """Проверяет, аутентифицирован ли запрос.
 
     Args:

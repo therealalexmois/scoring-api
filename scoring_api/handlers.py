@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 def handle_online_score(
     req: MethodRequest, arguments: dict[str, 'Any'], ctx: dict[str, 'Any']
-) -> tuple[dict[str, 'Any'], int]:
+) -> 'HTTPResponse | HTTPErrorResponse':
     """Обрабатывает метод `online_score`.
 
     Args:
@@ -23,14 +23,15 @@ def handle_online_score(
         ctx: Контекст запроса.
 
     Returns:
-        Словарь ответа и код состояния.
+        HTTPResponse или HTTPErrorResponse.
     """
     score_request = OnlineScoreRequest(arguments)
 
     if not score_request.is_valid():
         return HTTPErrorResponse(
-            ', '.join(f'{k}: {v}' for k, v in score_request.errors.items()), HTTPStatus.INVALID_REQUEST
-        ).as_tuple()
+            HTTPStatus.INVALID_REQUEST,
+            ', '.join(f'{k}: {v}' for k, v in score_request.errors.items()),
+        )
 
     required_pairs = [('phone', 'email'), ('first_name', 'last_name'), ('gender', 'birthday')]
 
@@ -42,18 +43,18 @@ def handle_online_score(
 
     if missing_pairs:
         return HTTPErrorResponse(
-            f'At least one of the following required field pairs must be provided: {", ".join(missing_pairs)}',
             HTTPStatus.INVALID_REQUEST,
-        ).as_tuple()
+            f'At least one of the following required field pairs must be provided: {", ".join(missing_pairs)}',
+        )
 
     ctx['has'] = [field for field, value in score_request.validated_data.items() if value]
 
     score = ADMIN_SCORE if req.is_admin else get_score(**score_request.validated_data)
 
-    return HTTPResponse({'score': score}).as_tuple()
+    return HTTPResponse({'score': score})
 
 
-def handle_clients_interests(arguments: dict[str, 'Any'], ctx: dict[str, 'Any']) -> tuple[dict[str, 'Any'], int]:
+def handle_clients_interests(arguments: dict[str, 'Any'], ctx: dict[str, 'Any']) -> 'HTTPResponse | HTTPErrorResponse':
     """Обрабатывает метод `clients_interests`.
 
     Args:
@@ -61,25 +62,26 @@ def handle_clients_interests(arguments: dict[str, 'Any'], ctx: dict[str, 'Any'])
         ctx: Контекст запроса.
 
     Returns:
-        Словарь ответа и код состояния.
+        HTTPResponse или HTTPErrorResponse.
     """
     interests_request = ClientsInterestsRequest(arguments)
 
     if not interests_request.is_valid():
         return HTTPErrorResponse(
-            ', '.join(f'{k}: {v}' for k, v in interests_request.errors.items()), HTTPStatus.INVALID_REQUEST
-        ).as_tuple()
+            HTTPStatus.INVALID_REQUEST,
+            ', '.join(f'{k}: {v}' for k, v in interests_request.errors.items()),
+        )
 
     ctx['nclients'] = len(interests_request.validated_data['client_ids'])
 
     interests = get_interests(interests_request.validated_data['client_ids'])
 
-    return HTTPResponse(interests).as_tuple()
+    return HTTPResponse(interests)
 
 
 def method_handler(
     request: dict[str, 'Any'], ctx: dict[str, 'Any'], _store: dict[str, 'Any'] | None = None
-) -> tuple[dict[str, 'Any'], int]:
+) -> 'HTTPResponse | HTTPErrorResponse':
     """Обрабатывает запросы методов, направляя их в соответствующие обработчики.
 
     Args:
@@ -88,17 +90,18 @@ def method_handler(
         _store: Хранилище данных (в настоящее время не используется).
 
     Returns:
-        Словарь ответа и код состояния.
+        HTTPResponse или HTTPErrorResponse.
     """
     req = MethodRequest(request['body'])
 
     if not req.is_valid():
         return HTTPErrorResponse(
-            ', '.join(f'{k}: {v}' for k, v in req.errors.items()), HTTPStatus.INVALID_REQUEST
-        ).as_tuple()
+            HTTPStatus.INVALID_REQUEST,
+            ', '.join(f'{k}: {v}' for k, v in req.errors.items()),
+        )
 
     if not check_auth(req):
-        return HTTPErrorResponse('Forbidden', HTTPStatus.FORBIDDEN).as_tuple()
+        return HTTPErrorResponse(HTTPStatus.FORBIDDEN)
 
     method = req.validated_data['method']
     arguments = req.validated_data['arguments']
@@ -109,4 +112,4 @@ def method_handler(
         case 'clients_interests':
             return handle_clients_interests(arguments, ctx)
         case _:
-            return HTTPErrorResponse('Method not found', HTTPStatus.NOT_FOUND).as_tuple()
+            return HTTPErrorResponse(HTTPStatus.NOT_FOUND)

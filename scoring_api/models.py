@@ -11,14 +11,14 @@ if TYPE_CHECKING:
 
 @dataclass
 class HTTPResponse:
-    """Представляет собой стандартизированный ответ HTTP об успехе."""
+    """Стандартизированный успешный HTTP-ответ."""
 
     response: dict[str, 'Any']
     status: HTTPStatus = HTTPStatus.OK
 
     def as_tuple(self) -> tuple[dict[str, 'Any'], int]:
         """Возвращает ответ в виде кортежа с целочисленным кодом состояния."""
-        return {'response': self.response}, self.status.value
+        return {'response': self.response}, self.status.code
 
     def __getitem__(self, index: int) -> dict[str, 'Any'] | int:
         """Разрешить распаковку как кортежа."""
@@ -29,12 +29,17 @@ class HTTPResponse:
 class HTTPErrorResponse:
     """Представляет собой стандартизированный ответ на ошибку HTTP."""
 
-    error: str
     status: 'HTTPStatus'
+    error: str | None = None
+
+    def __post_init__(self) -> None:
+        """Автоматически устанавливает сообщение об ошибке на основе статуса, если оно не указано."""
+        if self.error is None:
+            self.error = self.status.message
 
     def as_tuple(self) -> tuple[dict[str, str], int]:
         """Возвращает ошибку в виде кортежа."""
-        return {'error': self.error}, self.status.value
+        return {'error': self.error or self.status.message}, self.status.value
 
     def __getitem__(self, index: int) -> dict[str, 'Any'] | int:
         """Allow unpacking like a tuple."""
