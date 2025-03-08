@@ -121,6 +121,9 @@ class ClientIDsField(Field):
         if not isinstance(value, list) or not all(isinstance(i, int) for i in value):
             raise ValidationError('Must be a list of integers')
 
+        if not value:
+            raise ValidationError('Client IDs cannot be empty')
+
 
 class RequestMeta(type):
     """Метакласс, в котором собраны определения полей."""
