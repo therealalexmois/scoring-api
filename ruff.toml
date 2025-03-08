@@ -49,34 +49,35 @@ line-length = 120
 [lint]
 
 select = [
-    "ANN",      # flake8-annotations
-    "ASYNC",    # flake8-async
-    "ARG",      # flake8-unused-arguments
-    "T20",      # flake8-print
-    "TC",       # flake8-type-checking
-    "Q",        # flake8-quotes
-    "E",        # pycodestyle
-    "F",        # Pyflakes
-    "UP",       # pyupgrade
-    "B",        # flake8-bugbear
-    "SIM",      # flake8-simplify
-    "COM",      # flake8-commas
-    "I",        # isort
-    "D",        # pydocstyle
-    "W",        # pycodestyle
-    "PL",       # pylint rules
-    "N",        # pep8-naming
-    "C90",      # mccabe complexity
+    "ANN",   # flake8-annotations
+    "ASYNC", # flake8-async
+    "ARG",   # flake8-unused-arguments
+    "T20",   # flake8-print
+    "TC",    # flake8-type-checking
+    "Q",     # flake8-quotes
+    "E",     # pycodestyle
+    "F",     # Pyflakes
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "SIM",   # flake8-simplify
+    "COM",   # flake8-commas
+    "I",     # isort
+    "D",     # pydocstyle
+    "W",     # pycodestyle
+    "PL",    # pylint rules
+    "N",     # pep8-naming
+    "C90",   # mccabe complexity
 ]
 
 # Отключение конфликтующих правил
 ignore = [
-    "COM812",   # Конфликты с форматером
-    "Q001",     # Избегание конфликтов с форматировщиком Ruff, принудительно использующим двойные кавычки
-    "D415",     # Проверяет наличие строк документов, в которых первая строка не заканчивается знаком препинания
+    "COM812", # Конфликты с форматером
+    "Q001",   # Избегание конфликтов с форматировщиком Ruff, принудительно использующим двойные кавычки
+    "D415",   # Проверяет наличие строк документов, в которых первая строка не заканчивается знаком препинания
 ]
 
-per-file-ignores = { "tests/*" = ["D100", "D101", "D102", "D103", "D104"] }
+[lint.per-file-ignores]
+"tests/*" = ["D100", "D101", "D102", "D103", "D104"]
 
 [lint.pydocstyle]
 convention = "google"
@@ -168,12 +169,12 @@ max-nested-blocks = 3
 keep-runtime-typing = true
 
 [format]
-quote-style = "single"  # Применяет одинарные кавычки
+quote-style = "single" # Применяет одинарные кавычки
 
 docstring-code-format = true
 
-indent-style = "space"  # Устанавливает пробелы вместо табуляции
+indent-style = "space" # Устанавливает пробелы вместо табуляции
 
-skip-magic-trailing-comma = false  # Всегда используйте запятые в конце
+skip-magic-trailing-comma = false # Всегда используйте запятые в конце
 
-line-ending = "lf"  # Обеспечивает LF-концы строк (стиль Unix)
+line-ending = "lf" # Обеспечивает LF-концы строк (стиль Unix)
