@@ -14,10 +14,17 @@ DEFAULT_MAX_RETRIES = 5
 DEFAULT_RETRY_DELAY = 0.1
 DEFAULT_TTL = 3600
 
+
 class MemcacheStorage(StorageInterface):
     """Реализация хранилища с использованием Memcached."""
 
-    def __init__(self, host: str = DEFAULT_HOST, port: int = DEFAULT_PORT, max_retries: int = DEFAULT_MAX_RETRIES, retry_delay: float = DEFAULT_RETRY_DELAY):
+    def __init__(
+        self,
+        host: str = DEFAULT_HOST,
+        port: int = DEFAULT_PORT,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        retry_delay: float = DEFAULT_RETRY_DELAY,
+    ):
         """Создает соединение с Memcached."""
         self.host = host
         self.port = port
@@ -25,7 +32,6 @@ class MemcacheStorage(StorageInterface):
         self.retry_delay = retry_delay
         self.client = None
         self._connect()
-
 
     def _connect(self) -> None:
         """Подключается к Memcached."""
@@ -35,7 +41,7 @@ class MemcacheStorage(StorageInterface):
                 logger.info(f'Connected to Memcached at {self.host}:{self.port}')
                 return
             except MemcacheError as error:
-                wait_time = self.retry_delay * (2 ** attempt)
+                wait_time = self.retry_delay * (2**attempt)
                 logger.warning(f'⚠️ Memcached connection failed (attempt {attempt + 1}/{self.max_retries}): {error}')
                 time.sleep(wait_time)
 
