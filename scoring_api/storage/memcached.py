@@ -1,18 +1,21 @@
+"""Модуль реализации хранилища на основе Memcached."""
 import logging
 import time
 
 from pymemcache.client.base import Client
 from pymemcache.exceptions import MemcacheError
 
+from scoring_api.storage.constants import (
+    DEFAULT_CACHE_EXPIRATION_SECONDS,
+    DEFAULT_STORAGE_MAX_RETRIES,
+    DEFAULT_STORAGE_RETRY_DELAY_SECONDS,
+)
 from scoring_api.storage.interface import StorageInterface
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_HOST = 'localhost'
 DEFAULT_PORT = 1111
-DEFAULT_MAX_RETRIES = 5
-DEFAULT_RETRY_DELAY = 0.1
-DEFAULT_TTL = 3600
 
 
 class MemcacheStorage(StorageInterface):
@@ -22,8 +25,8 @@ class MemcacheStorage(StorageInterface):
         self,
         host: str = DEFAULT_HOST,
         port: int = DEFAULT_PORT,
-        max_retries: int = DEFAULT_MAX_RETRIES,
-        retry_delay: float = DEFAULT_RETRY_DELAY,
+        max_retries: int = DEFAULT_STORAGE_MAX_RETRIES,
+        retry_delay: float = DEFAULT_STORAGE_RETRY_DELAY_SECONDS,
     ) -> None:
         """Создает соединение с Memcached."""
         self.host = host
@@ -70,7 +73,7 @@ class MemcacheStorage(StorageInterface):
         except MemcacheError:
             return None
 
-    def cache_set(self, key: str, value: str | int | float, ttl: int = DEFAULT_TTL) -> None:
+    def cache_set(self, key: str, value: str | int | float, ttl: int = DEFAULT_CACHE_EXPIRATION_SECONDS) -> None:
         """Сохраняет значение в кэше с временем жизни."""
         if not self.client:
             return

@@ -26,6 +26,13 @@ class APIHandler(BaseHTTPRequestHandler):
     router: 'ClassVar[dict[str, MethodHandlerType]]' = {'method': method_handler}
 
     def __init__(self, *args: 'Any', storage: 'StorageInterface', **kwargs: 'Any') -> None:
+        """Инициализирует обработчик API.
+
+        Args:
+            *args: Аргументы, передаваемые в родительский класс.
+            storage: Экземпляр хранилища данных.
+            **kwargs: Именованные аргументы, передаваемые в родительский класс.
+        """
         self.storage = storage
         super().__init__(*args, **kwargs)
 

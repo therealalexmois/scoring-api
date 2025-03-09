@@ -1,4 +1,8 @@
+"""Интерфейс для реализации различных хранилищ."""
+
 from abc import ABC, abstractmethod
+
+from scoring_api.storage.constants import DEFAULT_CACHE_EXPIRATION_SECONDS
 
 
 class StorageInterface(ABC):
@@ -15,6 +19,6 @@ class StorageInterface(ABC):
         pass
 
     @abstractmethod
-    def cache_set(self, key: str, value: str | int | float, expire: int = 3600) -> None:
+    def cache_set(self, key: str, value: str | int | float, expire: int = DEFAULT_CACHE_EXPIRATION_SECONDS) -> None:
         """Устанавливает значение в кэше с временем жизни."""
         pass

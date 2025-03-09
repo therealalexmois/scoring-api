@@ -6,15 +6,15 @@
 Он обрабатывает аргументы командной строки, настраивает ведение журнала и запускает службу API.
 
 Использование:
-    Запустите сервер с настройками по умолчанию:
+    Запуск сервера с настройками по умолчанию:
         $ python -m scoring_api.server
 
-    Укажите порт и файл журнала:
+    Запуск с указание порта и файл журнала:
         $ python -m scoring_api.server --port 8081 --log server.log
 """
 
 import logging
-from http.server import HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import TYPE_CHECKING
 
 from scoring_api.api import APIHandler
@@ -23,6 +23,8 @@ from scoring_api.logger import configure_logger
 from scoring_api.storage.memcached import MemcacheStorage
 
 if TYPE_CHECKING:
+    from typing import Any
+
     from scoring_api.storage.interface import StorageInterface
 
 
@@ -35,7 +37,16 @@ def run_server(config: ServerConfig, storage: 'StorageInterface') -> None:
     """
     configure_logger(config.log_file)
 
-    def handler_factory(*args, **kwargs):
+    def handler_factory(*args: 'Any', **kwargs: 'Any') -> BaseHTTPRequestHandler:
+        """Фабрика обработчиков для HTTP-сервера.
+
+        Args:
+            *args: Позиционные аргументы для APIHandler.
+            **kwargs: Именованные аргументы для APIHandler.
+
+        Returns:
+            Экземпляр APIHandler.
+        """
         return APIHandler(*args, storage=storage, **kwargs)
 
     server = HTTPServer(('localhost', config.port), handler_factory)
