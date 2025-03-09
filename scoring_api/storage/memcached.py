@@ -24,7 +24,7 @@ class MemcacheStorage(StorageInterface):
         port: int = DEFAULT_PORT,
         max_retries: int = DEFAULT_MAX_RETRIES,
         retry_delay: float = DEFAULT_RETRY_DELAY,
-    ):
+    ) -> None:
         """Создает соединение с Memcached."""
         self.host = host
         self.port = port
