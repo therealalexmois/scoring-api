@@ -2,6 +2,7 @@ PYTHON := poetry run python
 POETRY := poetry
 PRE_COMMIT := poetry run pre-commit
 RUFF := poetry run ruff
+PYTEST := poetry run pytest
 MYPY := poetry run mypy
 
 # Активировать виртуальную среду
@@ -24,6 +25,11 @@ install:
 install-dev:
 	@echo "Установка dev зависимостей..."
 	@$(POETRY) install --with dev
+
+# Установка test зависимостей
+install-test:
+	@echo "Установка test зависимостей..."
+	@$(POETRY) install --with test
 
 # Запуск линтера
 lint:
@@ -49,7 +55,15 @@ lint-and-format: lint-fix lint-format
 
 # Запуск проверки типов
 type-check:
-	@$(MYPY) scoring_api/
+	@$(MYPY) .
+
+# Запуск тестов
+test:
+	@$(PYTEST) -p no:cacheprovider
+
+# Запуск тестов с покрытием
+test-with-coverage:
+	@$(PYTEST) -p no:cacheprovider --cov
 
 # Установка pre-commit hooks
 install-pre-commit:
@@ -62,6 +76,7 @@ pre-commit:
 # Очистка кэша и временных файлов
 clean:
 	@find . -name "__pycache__" -type d -exec rm -rf {} +
+	@rm -rf .mypy_cache .pytest_cache
 
 ci-checks: lint type-check
 
