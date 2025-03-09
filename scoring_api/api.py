@@ -1,4 +1,4 @@
-# ruff: noqa: ANN001, ANN201, ANN204, ANN401, D100, D101, D102, D103, D107, N804
+"""Определяет класс `APIHandler`, который обрабатывает входящие HTTP-запросы и направляет их в соответствующие обработчики."""
 
 import json
 import logging
@@ -36,28 +36,34 @@ class APIHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
 
-        final_response = {'response': response, 'code': status_code} if status_code == HTTPStatus.OK.value else response
+        final_response = (
+            {'code': status_code, 'response': response}
+            if status_code == HTTPStatus.OK.value
+            else {'code': status_code, 'error': response['error']}
+        )
 
         context.update(final_response)
         logging.info(context)
 
         self.wfile.write(json.dumps(final_response).encode('utf-8'))
 
-    def get_request_id(self, headers) -> str:
+    def get_request_id(self, headers) -> str:  # noqa: ANN001
         """Извлекает или генерирует идентификатор запроса."""
         return headers.get('HTTP_X_REQUEST_ID', uuid.uuid4().hex)
 
     def do_POST(self) -> None:  # noqa N802
         """Обрабатывает HTTP POST-запросы."""
-        context = {'request_id': self.get_request_id(self.headers)}
         response, status_code = {}, HTTPStatus.OK.value
+        context = {'request_id': self.get_request_id(self.headers)}
+        request = None
 
         try:
             data_string = self.rfile.read(int(self.headers['Content-Length']))
             request = json.loads(data_string)
         except (json.JSONDecodeError, ValueError):
             response, status_code = HTTPErrorResponse(HTTPStatus.BAD_REQUEST).as_tuple()
-        else:
+
+        if request:
             path = self.path.strip('/')
             logging.info(f'{self.path} {data_string} {context["request_id"]}')
 

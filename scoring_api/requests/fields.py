@@ -1,18 +1,15 @@
 # ruff: noqa: D102, D107, ANN401
-"""Проверка и обработка запросов."""
+"""Определение типов полей и их валидации."""
 
 import datetime
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from scoring_api.constants import ADMIN_LOGIN, MAX_AGE, PHONE_COUNTRY_CODE, PHONE_LENGTH
+from scoring_api.constants import MAX_AGE, PHONE_COUNTRY_CODE, PHONE_LENGTH
+from scoring_api.requests.exceptions import ValidationError
 
 if TYPE_CHECKING:
-    from typing import Any, ClassVar
-
-
-class ValidationError(Exception):
-    """Исключение, возникающее при неудачной проверке."""
+    from typing import Any
 
 
 class Field(ABC):
@@ -123,78 +120,3 @@ class ClientIDsField(Field):
 
         if not value:
             raise ValidationError('Client IDs cannot be empty')
-
-
-class RequestMeta(type):
-    """Метакласс, в котором собраны определения полей."""
-
-    def __new__(cls, name: str, bases: tuple, attrs: dict) -> type:
-        fields = {k: v for k, v in attrs.items() if isinstance(v, Field)}
-
-        for k in fields:
-            attrs.pop(k)
-
-        attrs['_fields'] = fields
-
-        return super().__new__(cls, name, bases, attrs)
-
-
-class BaseRequest(metaclass=RequestMeta):
-    """Базовый класс для всех типов запросов с автоматической проверкой полей."""
-
-    _fields: dict[str, Field] = {}
-
-    def __init__(self, data: dict[str, 'Any']) -> None:
-        self.errors: dict[str, str] = {}
-        self.validated_data: dict[str, Any] = {}
-        self.validate(data)
-
-    def validate(self, data: dict[str, 'Any']) -> None:
-        for field_name, field in self._fields.items():
-            value = data.get(field_name)
-
-            try:
-                field.validate(value)
-                self.validated_data[field_name] = value
-            except ValidationError as e:
-                self.errors[field_name] = str(e)
-
-    def is_valid(self) -> bool:
-        """Проверяет, что запрос действителен."""
-        return not bool(self.errors)
-
-
-class ClientsInterestsRequest(BaseRequest):
-    """Запрос интересов клиента."""
-
-    client_ids: 'ClassVar[ClientIDsField]' = ClientIDsField(required=True)
-    date: 'ClassVar[DateField]' = DateField(required=False, nullable=True)
-
-
-class OnlineScoreRequest(BaseRequest):
-    """Запрос на расчет баллов в режиме онлайн."""
-
-    first_name: 'ClassVar[CharField]' = CharField(required=False, nullable=True)
-    last_name: 'ClassVar[CharField]' = CharField(required=False, nullable=True)
-    email: 'ClassVar[EmailField]' = EmailField(required=False, nullable=True)
-    phone: 'ClassVar[PhoneField]' = PhoneField(required=False, nullable=True)
-    birthday: 'ClassVar[BirthDayField]' = BirthDayField(required=False, nullable=True)
-    gender: 'ClassVar[GenderField]' = GenderField(required=False, nullable=True)
-
-
-class MethodRequest(BaseRequest):
-    """Запрос общего метода с аутентификацией."""
-
-    account: 'ClassVar[CharField]' = CharField(required=False, nullable=True)
-    login: 'ClassVar[CharField]' = CharField(required=True, nullable=True)
-    token: 'ClassVar[CharField]' = CharField(required=True, nullable=True)
-    arguments: 'ClassVar[ArgumentsField]' = ArgumentsField(required=True, nullable=True)
-    method: 'ClassVar[CharField]' = CharField(required=True, nullable=False)
-
-    def __init__(self, data):  # noqa
-        super().__init__(data)
-
-    @property
-    def is_admin(self) -> bool:
-        """Проверьте, является ли пользователь администратором."""
-        return self.validated_data.get('login') == ADMIN_LOGIN
