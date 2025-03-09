@@ -103,18 +103,19 @@ def method_handler(
     method = req.validated_data.get('method')
     arguments = req.validated_data.get('arguments', {})
 
-    match method:
-        case 'online_score':
-            try:
+    status_code = HTTPStatus.OK.value
+    response = {'error': HTTPStatus.NOT_FOUND.message}
+
+    try:
+        match method:
+            case 'online_score':
                 response = handle_online_score(req, arguments, ctx)
-                return response, HTTPStatus.OK.value
-            except ValidationError as error:
-                return {'error': str(error)}, HTTPStatus.INVALID_REQUEST.value
-        case 'clients_interests':
-            try:
+            case 'clients_interests':
                 response = handle_clients_interests(arguments, ctx)
-                return response, HTTPStatus.OK.value
-            except ValidationError as error:
-                return {'error': str(error)}, HTTPStatus.INVALID_REQUEST.value
-        case _:
-            return {'error': HTTPStatus.NOT_FOUND.message}, HTTPStatus.NOT_FOUND.value
+            case _:
+                status_code = HTTPStatus.NOT_FOUND.value
+    except ValidationError as error:
+        response = {'error': str(error)}
+        status_code = HTTPStatus.INVALID_REQUEST.value
+
+    return response, status_code
