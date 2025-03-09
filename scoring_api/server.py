@@ -15,21 +15,30 @@
 
 import logging
 from http.server import HTTPServer
+from typing import TYPE_CHECKING
 
 from scoring_api.api import APIHandler
 from scoring_api.cli import parse_arguments, ServerConfig
 from scoring_api.logger import configure_logger
+from scoring_api.storage.memcached import MemcacheStorage
+
+if TYPE_CHECKING:
+    from scoring_api.storage.interface import StorageInterface
 
 
-def run_server(config: ServerConfig) -> None:
+def run_server(config: ServerConfig, storage: 'StorageInterface') -> None:
     """Запускает сервер API скоринга.
 
     Args:
         config: Конфигурация, содержащая порт и файл журнала.
+        storage: Экземпляр хранилища.
     """
     configure_logger(config.log_file)
 
-    server = HTTPServer(('localhost', config.port), APIHandler)
+    def handler_factory(*args, **kwargs):
+        return APIHandler(*args, storage=storage, **kwargs)
+
+    server = HTTPServer(('localhost', config.port), handler_factory)
     logging.info(f'Starting server at port {config.port}')
 
     try:
@@ -43,5 +52,6 @@ def run_server(config: ServerConfig) -> None:
 
 if __name__ == '__main__':
     config = parse_arguments()
+    storage = MemcacheStorage()
 
-    run_server(config)
+    run_server(config, storage)

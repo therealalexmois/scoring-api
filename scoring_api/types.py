@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import Any
 
+    from scoring_api.storage.interface import StorageInterface
 
-MethodHandlerType = Callable[
-    [dict[str, 'Any'], dict[str, 'Any'], dict[str, 'Any'] | None], tuple[dict[str, 'Any'], int]
-]
+
+MethodHandlerType = Callable[[dict[str, 'Any'], dict[str, 'Any'], 'StorageInterface'], tuple[dict[str, 'Any'], int]]
 """Псевдоним типа для функций-обработчиков методов.
 
 Arguments:

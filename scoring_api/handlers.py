@@ -11,14 +11,19 @@ from scoring_api.scoring import get_interests, get_score
 if TYPE_CHECKING:
     from typing import Any
 
+    from scoring_api.storage.interface import StorageInterface
 
-def handle_online_score(req: MethodRequest, data: dict[str, 'Any'], ctx: dict[str, 'Any']) -> dict[str, float]:
+
+def handle_online_score(
+    req: MethodRequest, data: dict[str, 'Any'], ctx: dict[str, 'Any'], storage: 'StorageInterface'
+) -> dict[str, float]:
     """Обрабатывает метод `online_score`.
 
     Args:
         req: Проверенный объект запроса.
         data: Аргументы метода.
         ctx: Контекст запроса.
+        storage: Экземпляр хранилища.
 
     Returns:
         Словарь со значением `score`.
@@ -49,17 +54,20 @@ def handle_online_score(req: MethodRequest, data: dict[str, 'Any'], ctx: dict[st
 
     ctx['has'] = [field for field, value in score_request.validated_data.items() if value is not None]
 
-    score = ADMIN_SCORE if req.is_admin else get_score(**score_request.validated_data)
+    score = ADMIN_SCORE if req.is_admin else get_score(storage, **score_request.validated_data)
 
     return {'score': score}
 
 
-def handle_clients_interests(data: dict[str, 'Any'], ctx: dict[str, 'Any']) -> dict[str, list[str]]:
+def handle_clients_interests(
+    data: dict[str, 'Any'], ctx: dict[str, 'Any'], storage: 'StorageInterface'
+) -> dict[str, list[str]]:
     """Обрабатывает метод `clients_interests`.
 
     Args:
         data: Аргументы метода.
         ctx: Контекст запроса.
+        storage: Экземпляр хранилища.
 
     Returns:
         Словарь с интересами пользователей.
@@ -72,22 +80,23 @@ def handle_clients_interests(data: dict[str, 'Any'], ctx: dict[str, 'Any']) -> d
     if not interests_request.is_valid():
         raise ValidationError(', '.join(f'{k}: {v}' for k, v in interests_request.errors.items()))
 
-    ctx['nclients'] = len(interests_request.validated_data['client_ids'])
+    client_ids = interests_request.validated_data['client_ids']
+    ctx['nclients'] = len(client_ids)
 
-    interests = get_interests(interests_request.validated_data['client_ids'])
+    interests = get_interests(storage, client_ids)
 
     return interests
 
 
 def method_handler(
-    request: dict[str, 'Any'], ctx: dict[str, 'Any'], _store: dict[str, 'Any'] | None = None
+    request: dict[str, 'Any'], ctx: dict[str, 'Any'], storage: 'StorageInterface'
 ) -> tuple[dict[str, 'Any'], int]:
     """Обрабатывает запросы методов, направляя их в соответствующие обработчики.
 
     Args:
         request: Данные входящего запроса.
         ctx: Контекст запроса.
-        _store: Хранилище данных (в настоящее время не используется).
+        storage: Экземпляр хранилища.
 
     Returns:
         Кортеж с ответом и кодом состояния HTTP.
@@ -109,9 +118,9 @@ def method_handler(
     try:
         match method:
             case 'online_score':
-                response = handle_online_score(req, arguments, ctx)
+                response = handle_online_score(req, arguments, ctx, storage)
             case 'clients_interests':
-                response = handle_clients_interests(arguments, ctx)
+                response = handle_clients_interests(arguments, ctx, storage)
             case _:
                 status_code = HTTPStatus.NOT_FOUND.value
     except ValidationError as error:

@@ -69,12 +69,12 @@ def get_score(  # noqa: PLR0913
     return score
 
 
-def get_interests(storage: 'StorageInterface', cid: str) -> list:
+def get_interests(storage: 'StorageInterface', client_ids: list[int]) -> dict[str, list[str]]:
     """Возвращает интересы пользователя из кэша. Ошибка при недоступности хранилища.
 
     Args:
         storage: Экземпляр хранилища.
-        cid: ID клиента.
+        client_ids: Идентификаторы клиентов.
 
     Returns:
         Список интересов.
@@ -82,6 +82,11 @@ def get_interests(storage: 'StorageInterface', cid: str) -> list:
     Raises:
         ConnectionError: Если хранилище недоступно.
     """
-    key = f'i:{cid}'
-    data = storage.get(key)
-    return json.loads(data) if data else []
+    interests = {}
+
+    for cid in client_ids:
+        key = f'i:{cid}'
+        data = storage.get(key)
+        interests[cid] = json.loads(data) if data else []
+
+    return interests

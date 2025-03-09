@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from email.message import Message
     from typing import Any, ClassVar
 
+    from scoring_api.storage.interface import StorageInterface
     from scoring_api.types import MethodHandlerType
 
 
@@ -23,7 +24,10 @@ class APIHandler(BaseHTTPRequestHandler):
     """Обрабатывает входящие HTTP-запросы и направляет их в соответствующий метод."""
 
     router: 'ClassVar[dict[str, MethodHandlerType]]' = {'method': method_handler}
-    store: 'ClassVar[dict[str, Any] | None]' = None
+
+    def __init__(self, *args: 'Any', storage: 'StorageInterface', **kwargs: 'Any') -> None:
+        self.storage = storage
+        super().__init__(*args, **kwargs)
 
     def _send_response(self, response: dict[str, 'Any'], status_code: int, context: dict[str, 'Any']) -> None:
         """Отправляет ответ в формате JSON обратно клиенту.
@@ -72,7 +76,7 @@ class APIHandler(BaseHTTPRequestHandler):
             if path in self.router:
                 try:
                     method = self.router[path]
-                    response, status_code = method({'body': request, 'headers': self.headers}, context, self.store)
+                    response, status_code = method({'body': request, 'headers': self.headers}, context, self.storage)
                 except Exception as error:
                     logging.exception(f'Unexpected error: {error}')
                     response, status_code = HTTPErrorResponse(HTTPStatus.INTERNAL_ERROR).as_tuple()
