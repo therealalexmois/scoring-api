@@ -17,6 +17,9 @@ ruff = "==0.9.6"
 mypy = "==1.15.0"
 
 
+
+[tool.poetry.dependencies]
+pymemcache = "==4.0.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
