@@ -13,6 +13,7 @@ from scoring_api.handlers import method_handler
 from scoring_api.models import HTTPErrorResponse
 
 if TYPE_CHECKING:
+    from email.message import Message
     from typing import Any, ClassVar
 
     from scoring_api.types import MethodHandlerType
@@ -47,13 +48,14 @@ class APIHandler(BaseHTTPRequestHandler):
 
         self.wfile.write(json.dumps(final_response).encode('utf-8'))
 
-    def get_request_id(self, headers) -> str:  # noqa: ANN001
+    def get_request_id(self, headers: 'Message') -> str:  # noqa: ANN001
         """Извлекает или генерирует идентификатор запроса."""
-        return headers.get('HTTP_X_REQUEST_ID', uuid.uuid4().hex)
+        return str(headers.get('HTTP_X_REQUEST_ID', uuid.uuid4().hex))
 
     def do_POST(self) -> None:  # noqa N802
         """Обрабатывает HTTP POST-запросы."""
-        response, status_code = {}, HTTPStatus.OK.value
+        response: dict[str, Any] = {}
+        status_code = HTTPStatus.OK.value
         context = {'request_id': self.get_request_id(self.headers)}
         request = None
 
@@ -65,7 +67,7 @@ class APIHandler(BaseHTTPRequestHandler):
 
         if request:
             path = self.path.strip('/')
-            logging.info(f'{self.path} {data_string} {context["request_id"]}')
+            logging.info(f'{self.path} {data_string.decode("utf-8")} {context["request_id"]}')
 
             if path in self.router:
                 try:

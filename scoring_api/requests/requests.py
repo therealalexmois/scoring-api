@@ -17,7 +17,7 @@ from scoring_api.requests.fields import (
 )
 
 if TYPE_CHECKING:
-    from typing import ClassVar
+    from typing import Any, ClassVar
 
 
 class ClientsInterestsRequest(BaseRequest):
@@ -47,7 +47,7 @@ class MethodRequest(BaseRequest):
     arguments: 'ClassVar[ArgumentsField]' = ArgumentsField(required=True, nullable=True)
     method: 'ClassVar[CharField]' = CharField(required=True, nullable=False)
 
-    def __init__(self, data):  # noqa
+    def __init__(self, data: dict[str, 'Any']):  # noqa: ANN204
         super().__init__(data)
 
     @property

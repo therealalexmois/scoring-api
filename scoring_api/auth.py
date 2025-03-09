@@ -21,10 +21,10 @@ def check_auth(request: 'MethodRequest') -> bool:
     """
     if request.is_admin:
         digest = hashlib.sha512((datetime.datetime.now().strftime('%Y%m%d%H') + ADMIN_SALT).encode('utf-8')).hexdigest()
-        return digest == request.validated_data['token']
+        return bool(digest == request.validated_data['token'])
 
     digest = hashlib.sha512(
         (request.validated_data.get('account', '') + request.validated_data['login'] + SALT).encode('utf-8')
     ).hexdigest()
 
-    return digest == request.validated_data['token']
+    return bool(digest == request.validated_data['token'])

@@ -92,7 +92,7 @@ def method_handler(
     Returns:
         Кортеж с ответом и кодом состояния HTTP.
     """
-    req = MethodRequest(request['body'])
+    req: MethodRequest = MethodRequest(request['body'])
 
     if not req.is_valid():
         return {'error': req.errors}, HTTPStatus.INVALID_REQUEST.value
@@ -104,7 +104,7 @@ def method_handler(
     arguments = req.validated_data.get('arguments', {})
 
     status_code = HTTPStatus.OK.value
-    response = {'error': HTTPStatus.NOT_FOUND.message}
+    response: dict[str, Any] = {'error': HTTPStatus.NOT_FOUND.message}
 
     try:
         match method:

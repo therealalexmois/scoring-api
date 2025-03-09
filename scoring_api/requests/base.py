@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class RequestMeta(type):
     """Метакласс, в котором собраны определения полей."""
 
-    def __new__(cls, name: str, bases: tuple, attrs: dict) -> type:
+    def __new__(cls, name: str, bases: tuple[type, ...], attrs: dict[str, 'Any']) -> type:
         fields = {k: v for k, v in attrs.items() if isinstance(v, Field)}
 
         for k in fields:
