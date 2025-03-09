@@ -49,7 +49,7 @@ lint-and-format: lint-fix lint-format
 
 # Запуск проверки типов
 type-check:
-	@$(MYPY) exercises/
+	@$(MYPY) scoring_api/
 
 # Установка pre-commit hooks
 install-pre-commit:
