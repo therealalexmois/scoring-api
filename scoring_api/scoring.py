@@ -1,17 +1,23 @@
 """Модуль содержит функции для подсчета оценок пользователей и поиска интересов клиентов."""
 
-import random
-from enum import Enum
+import datetime
+import hashlib
+import json
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from scoring_api.storage.interface import StorageInterface
 
 type Phone = str | int | None
 type Email = str | None
-type Birthday = str | None
+type Birthday = datetime.date | None
 type Gender = int | None
 type FirstName = str | None
 type LastName = str | None
 
 
-def get_score(
+def get_score(  # noqa: PLR0913
+    store: 'StorageInterface',
     phone: Phone = None,
     email: Email = None,
     birthday: Birthday = None,
@@ -28,6 +34,7 @@ def get_score(
     - +0.5, если указаны `первое_имя` и `последнее_имя`.
 
     Args:
+        store: Экземпляр хранилища.
         phone: Номер телефона пользователя.
         email: Адрес электронной почты пользователя.
         birthday: День рождения пользователя в формате "DD.MM.YYYY".
@@ -38,7 +45,18 @@ def get_score(
     Returns:
         Расчетная оценка.
     """
-    return sum(
+    key_parts = [
+        first_name or '',
+        last_name or '',
+        phone or '',
+        birthday.strftime('%Y%m%d') if birthday else '',
+    ]
+    key = 'uid:' + hashlib.md5(''.join(key_parts).encode('utf-8')).hexdigest()
+
+    if score := store.cache_get(key) is not None:
+        return float(score)
+
+    score = sum(
         [
             1.5 if phone else 0,
             1.5 if email else 0,
@@ -47,34 +65,23 @@ def get_score(
         ]
     )
 
-
-class Interest(Enum):
-    """Перечисление интересов клиентов."""
-
-    CARS = 'cars'
-    PETS = 'pets'
-    TRAVEL = 'travel'
-    HI_TECH = 'hi-tech'
-    SPORT = 'sport'
-    MUSIC = 'music'
-    BOOKS = 'books'
-    TV = 'tv'
-    CINEMA = 'cinema'
-    GEEK = 'geek'
-    OTUS = 'otus'
+    store.cache_set(key, score, 60 * 60)
+    return score
 
 
-INTERESTS_LIST = [interest.value for interest in Interest]
-
-
-def get_interests(client_ids: list[int], _date: str | None = None) -> dict[str, list[str]]:
-    """Возвращает случайные интересы для каждого идентификатора клиента.
+def get_interests(store: 'StorageInterface', cid: str) -> list:
+    """Возвращает интересы пользователя из кэша. Ошибка при недоступности хранилища.
 
     Args:
-        client_ids: Список идентификаторов клиентов.
-        _date: Параметр даты (не используется).
+        store: Экземпляр хранилища.
+        cid: ID клиента.
 
     Returns:
-        Словарь, сопоставляющий идентификаторы клиентов со списком интересов.
+        Список интересов.
+
+    Raises:
+        ConnectionError: Если хранилище недоступно.
     """
-    return {str(client_id): random.sample(INTERESTS_LIST, 2) for client_id in client_ids}
+    key = f'i:{cid}'
+    data = store.get(key)
+    return json.loads(data) if data else []
