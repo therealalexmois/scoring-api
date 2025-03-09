@@ -17,7 +17,7 @@ type LastName = str | None
 
 
 def get_score(  # noqa: PLR0913
-    store: 'StorageInterface',
+    storage: 'StorageInterface',
     phone: Phone = None,
     email: Email = None,
     birthday: Birthday = None,
@@ -34,7 +34,7 @@ def get_score(  # noqa: PLR0913
     - +0.5, если указаны `первое_имя` и `последнее_имя`.
 
     Args:
-        store: Экземпляр хранилища.
+        storage: Экземпляр хранилища.
         phone: Номер телефона пользователя.
         email: Адрес электронной почты пользователя.
         birthday: День рождения пользователя в формате "DD.MM.YYYY".
@@ -53,7 +53,7 @@ def get_score(  # noqa: PLR0913
     ]
     key = 'uid:' + hashlib.md5(''.join(key_parts).encode('utf-8')).hexdigest()
 
-    if score := store.cache_get(key) is not None:
+    if score := storage.cache_get(key) is not None:
         return float(score)
 
     score = sum(
@@ -65,15 +65,15 @@ def get_score(  # noqa: PLR0913
         ]
     )
 
-    store.cache_set(key, score, 60 * 60)
+    storage.cache_set(key, score, 60 * 60)
     return score
 
 
-def get_interests(store: 'StorageInterface', cid: str) -> list:
+def get_interests(storage: 'StorageInterface', cid: str) -> list:
     """Возвращает интересы пользователя из кэша. Ошибка при недоступности хранилища.
 
     Args:
-        store: Экземпляр хранилища.
+        storage: Экземпляр хранилища.
         cid: ID клиента.
 
     Returns:
@@ -83,5 +83,5 @@ def get_interests(store: 'StorageInterface', cid: str) -> list:
         ConnectionError: Если хранилище недоступно.
     """
     key = f'i:{cid}'
-    data = store.get(key)
+    data = storage.get(key)
     return json.loads(data) if data else []
