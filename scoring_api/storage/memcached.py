@@ -15,7 +15,7 @@ from scoring_api.storage.interface import StorageInterface
 logger = logging.getLogger(__name__)
 
 DEFAULT_HOST = 'localhost'
-DEFAULT_PORT = 1111
+DEFAULT_PORT = 11211
 
 
 class MemcacheStorage(StorageInterface):
