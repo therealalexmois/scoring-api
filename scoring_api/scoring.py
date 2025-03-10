@@ -45,23 +45,24 @@ def get_score(  # noqa: PLR0913
     Returns:
         Расчетная оценка.
     """
-    key_parts = [
+    # TODO: Вынести в отдельную encode функцию (хэш-функцию)
+    key_parts: list[str] = [
         first_name or '',
         last_name or '',
-        phone or '',
+        str(phone) or '',
         birthday.strftime('%Y%m%d') if birthday else '',
     ]
     key = 'uid:' + hashlib.md5(''.join(key_parts).encode('utf-8')).hexdigest()
 
-    if score := storage.cache_get(key) is not None:
-        return float(score)
+    if cached_score := storage.cache_get(key) is not None:
+        return float(cached_score)
 
-    score = sum(
+    score: float = sum(
         [
-            1.5 if phone else 0,
-            1.5 if email else 0,
-            1.5 if birthday and gender is not None else 0,
-            0.5 if first_name and last_name else 0,
+            1.5 if phone else float(0),
+            1.5 if email else float(0),
+            1.5 if birthday and gender is not None else float(0),
+            0.5 if first_name and last_name else float(0),
         ]
     )
 
@@ -82,11 +83,11 @@ def get_interests(storage: 'StorageInterface', client_ids: list[int]) -> dict[st
     Raises:
         ConnectionError: Если хранилище недоступно.
     """
-    interests = {}
+    interests: dict[str, list[str]] = {}
 
     for cid in client_ids:
         key = f'i:{cid}'
         data = storage.get(key)
-        interests[cid] = json.loads(data) if data else []
+        interests[str(cid)] = json.loads(data) if data else []
 
     return interests

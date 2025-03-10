@@ -33,7 +33,7 @@ class MemcacheStorage(StorageInterface):
         self.port = port
         self.max_retries = max_retries
         self.retry_delay = retry_delay
-        self.client = None
+        self.client: None | Client = None
         self._connect()
 
     def _connect(self) -> None:
@@ -52,7 +52,7 @@ class MemcacheStorage(StorageInterface):
 
     def get(self, key: str) -> str | None:
         """Получает значение из хранилища. Выбрасывает ошибку при недоступности."""
-        if not self.client:
+        if self.client is None:
             raise ConnectionError('Memcached is unavailable.')
 
         try:
@@ -64,7 +64,7 @@ class MemcacheStorage(StorageInterface):
 
     def cache_get(self, key: str) -> str | None:
         """Получает значение из кэша. Не выбрасывает ошибку при недоступности."""
-        if not self.client:
+        if self.client is None:
             return None
 
         try:
@@ -75,7 +75,7 @@ class MemcacheStorage(StorageInterface):
 
     def cache_set(self, key: str, value: str | int | float, ttl: int = DEFAULT_CACHE_EXPIRATION_SECONDS) -> None:
         """Сохраняет значение в кэше с временем жизни."""
-        if not self.client:
+        if self.client is None:
             return
 
         try:
