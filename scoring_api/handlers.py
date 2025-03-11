@@ -1,5 +1,6 @@
 """Обработчики для различных методов API."""
 
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from scoring_api.auth import check_auth
@@ -12,6 +13,12 @@ if TYPE_CHECKING:
     from typing import Any
 
     from scoring_api.storage.interface import StorageInterface
+
+
+class MethodName(str, Enum):
+    """Допустимые методы API."""
+    ONLINE_SCORE = 'online_score'
+    CLIENTS_INTERESTS = 'clients_interests'
 
 
 def handle_online_score(
@@ -117,9 +124,9 @@ def method_handler(
 
     try:
         match method:
-            case 'online_score':
+            case MethodName.ONLINE_SCORE:
                 response = handle_online_score(req, arguments, ctx, storage)
-            case 'clients_interests':
+            case MethodName.CLIENTS_INTERESTS:
                 response = handle_clients_interests(arguments, ctx, storage)
             case _:
                 status_code = HTTPStatus.NOT_FOUND.value
