@@ -76,18 +76,17 @@ class APIHandler(BaseHTTPRequestHandler):
         except (json.JSONDecodeError, ValueError):
             response, status_code = HTTPErrorResponse(HTTPStatus.BAD_REQUEST).as_tuple()
 
-        if request:
-            path = self.path.strip('/')
-            logging.info(f'{self.path} {data_string.decode("utf-8")} {context["request_id"]}')
+        path = self.path.strip('/')
+        logging.info(f'{self.path} {data_string.decode("utf-8")} {context["request_id"]}')
 
-            if path in self.router:
-                try:
-                    method = self.router[path]
-                    response, status_code = method({'body': request, 'headers': self.headers}, context, self.storage)
-                except Exception as error:
-                    logging.exception(f'Unexpected error: {error}')
-                    response, status_code = HTTPErrorResponse(HTTPStatus.INTERNAL_ERROR).as_tuple()
-            else:
-                response, status_code = HTTPErrorResponse(HTTPStatus.NOT_FOUND).as_tuple()
+        if path in self.router:
+            try:
+                method = self.router[path]
+                response, status_code = method({'body': request, 'headers': self.headers}, context, self.storage)
+            except Exception as error:
+                logging.exception(f'Unexpected error: {error}')
+                response, status_code = HTTPErrorResponse(HTTPStatus.INTERNAL_ERROR).as_tuple()
+        else:
+            response, status_code = HTTPErrorResponse(HTTPStatus.NOT_FOUND).as_tuple()
 
         self._send_response(response, status_code, context)
