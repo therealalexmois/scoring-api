@@ -10,7 +10,28 @@ if TYPE_CHECKING:
     from scoring_api.requests.requests import MethodRequest
 
 
-# TODO: Декомпозировать на генерацию токена и проверка
+def generate_auth_token(login: str, account: str = '') -> str:
+    """Генерирует токен аутентификации для пользователя.
+
+    Args:
+        login: Логин пользователя.
+        account: Учетная запись пользователя (по умолчанию '').
+
+    Returns:
+        Строка токена.
+    """
+    return hashlib.sha512((account + login + SALT).encode('utf-8')).hexdigest()
+
+
+def generate_admin_auth_token() -> str:
+    """Генерирует токен аутентификации для администратора.
+
+    Returns:
+        Строка токена администратора.
+    """
+    return hashlib.sha512((datetime.datetime.now().strftime('%Y%m%d%H') + ADMIN_SALT).encode('utf-8')).hexdigest()
+
+
 def check_auth(request: 'MethodRequest') -> bool:
     """Проверяет, аутентифицирован ли запрос.
 
@@ -20,12 +41,10 @@ def check_auth(request: 'MethodRequest') -> bool:
     Returns:
         True, если аутентификация подтверждена, False в противном случае.
     """
-    if request.is_admin:
-        digest = hashlib.sha512((datetime.datetime.now().strftime('%Y%m%d%H') + ADMIN_SALT).encode('utf-8')).hexdigest()
-        return bool(digest == request.validated_data['token'])
+    expected_token = (
+        generate_admin_auth_token()
+        if request.is_admin
+        else generate_auth_token(request.validated_data['login'], request.validated_data.get('account', ''))
+    )
 
-    digest = hashlib.sha512(
-        (request.validated_data.get('account', '') + request.validated_data['login'] + SALT).encode('utf-8')
-    ).hexdigest()
-
-    return bool(digest == request.validated_data['token'])
+    return bool(expected_token == request.validated_data['token'])
