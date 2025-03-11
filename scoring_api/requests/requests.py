@@ -44,9 +44,7 @@ class OnlineScoreRequest(BaseRequest):
 
         if valid and 'birthday' in self.validated_data and isinstance(self.validated_data['birthday'], str):
             try:
-                self.validated_data['birthday'] = datetime.strptime(
-                    self.validated_data['birthday'], '%d.%m.%Y'
-                ).date()
+                self.validated_data['birthday'] = datetime.strptime(self.validated_data['birthday'], '%d.%m.%Y').date()
             except ValueError:
                 self.errors['birthday'] = 'Invalid date format. Expected DD.MM.YYYY'
                 return False

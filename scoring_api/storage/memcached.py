@@ -1,4 +1,5 @@
 """Модуль реализации хранилища на основе Memcached."""
+
 import logging
 import time
 

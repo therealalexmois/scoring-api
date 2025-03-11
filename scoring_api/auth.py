@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from scoring_api.requests.requests import MethodRequest
 
 
+# TODO: Декомпозировать на генерацию токена и проверка
 def check_auth(request: 'MethodRequest') -> bool:
     """Проверяет, аутентифицирован ли запрос.
 
