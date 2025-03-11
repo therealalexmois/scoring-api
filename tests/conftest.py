@@ -6,6 +6,7 @@ from tests.utils.auth import generate_auth_token
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from typing import Any
 
     from scoring_api.handlers import MethodName
 
@@ -14,7 +15,7 @@ DEFAULT_ARGUMENTS = {'phone': '79175002040', 'email': 'test@example.com'}
 
 
 @pytest.fixture
-def make_valid_api_request() -> 'Callable[..., dict[str, str | dict[str, str]]]':
+def make_valid_api_request() -> 'Callable[..., dict[str, Any]]':
     """Фабрика для создания корректного API-запроса с опциональными параметрами.
 
     Args:
