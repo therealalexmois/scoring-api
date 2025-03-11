@@ -5,6 +5,8 @@ import pytest
 from tests.utils.auth import generate_auth_token
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from scoring_api.handlers import MethodName
 
 DEFAULT_LOGIN = 'h&f'
