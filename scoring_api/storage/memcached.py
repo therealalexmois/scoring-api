@@ -65,13 +65,11 @@ class MemcacheStorage(StorageInterface):
 
     def cache_get(self, key: str) -> str | None:
         """Получает значение из кэша. Не выбрасывает ошибку при недоступности."""
-        if self.client is None:
-            return None
-
         try:
             value = self.client.get(key)
-            return value.decode('utf-8') if value else None
-        except MemcacheError:
+            return value.decode() if isinstance(value, bytes) else value
+        except Exception as error:
+            logging.error(f'Memcached error: {error}')
             return None
 
     def cache_set(self, key: str, value: str | int | float, ttl: int = DEFAULT_CACHE_EXPIRATION_SECONDS) -> None:
