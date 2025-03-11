@@ -54,7 +54,8 @@ def get_score(  # noqa: PLR0913
     ]
     key = 'uid:' + hashlib.md5(''.join(key_parts).encode('utf-8')).hexdigest()
 
-    if cached_score := storage.cache_get(key) is not None:
+    cached_score = storage.cache_get(key)
+    if cached_score is not None:
         return float(cached_score)
 
     score: float = sum(
