@@ -127,6 +127,7 @@ def test_handle_online_score__invalid_request(
     mocker: 'MockFixture',
     make_valid_api_request: 'Callable[..., dict[str, Any]]',
     storage_mock: 'StorageInterface',
+    headers: dict[str, str],
     context: dict[str, int],
 ) -> None:
     """Тестирует обработку запроса `online_score` с некорректными аргументами."""
@@ -140,22 +141,25 @@ def test_handle_online_score__invalid_request(
 
 
 @pytest.mark.parametrize(
-    'arguments',
+    'arguments, expected_score',
     [
-        {'phone': '79175002040', 'email': 'stupnikov@otus.ru'},
-        {'phone': 79175002040, 'email': 'stupnikov@otus.ru'},
-        {'gender': 1, 'birthday': '01.01.2000', 'first_name': 'a', 'last_name': 'b'},
-        {'gender': 0, 'birthday': '01.01.2000'},
-        {'gender': 2, 'birthday': '01.01.2000'},
-        {'first_name': 'a', 'last_name': 'b'},
-        {
-            'phone': '79175002040',
-            'email': 'stupnikov@otus.ru',
-            'gender': 1,
-            'birthday': '01.01.2000',
-            'first_name': 'a',
-            'last_name': 'b',
-        },
+        ({'phone': '79175002040', 'email': 'stupnikov@otus.ru'}, 3.0),
+        ({'phone': 79175002040, 'email': 'stupnikov@otus.ru'}, 3.0),
+        ({'gender': 1, 'birthday': '01.01.2000', 'first_name': 'a', 'last_name': 'b'}, 2.0),  # Fixed from 3.5
+        ({'gender': 0, 'birthday': '01.01.2000'}, 1.5),
+        ({'gender': 2, 'birthday': '01.01.2000'}, 1.5),
+        ({'first_name': 'a', 'last_name': 'b'}, 0.5),
+        (
+            {
+                'phone': '79175002040',
+                'email': 'stupnikov@otus.ru',
+                'gender': 1,
+                'birthday': '01.01.2000',
+                'first_name': 'a',
+                'last_name': 'b',
+            },
+            5.0,  # Fixed from 4.5
+        ),
     ],
     ids=[
         'test_handle_online_score__valid_phone_email_1',
@@ -169,17 +173,22 @@ def test_handle_online_score__invalid_request(
 )
 def test_handle_online_score__request_ok(
     arguments: dict[str, str],
+    expected_score: float,
     make_valid_api_request: 'Callable[..., dict[str, Any]]',
     headers: dict[str, str],
     context: dict[str, int],
     storage_mock: 'StorageInterface',
 ) -> None:
     """Тестирует валидные запросы `handle_online_score`."""
+    storage_mock.cache_get.return_value = None  # Mock cache to return None
+
     request_data = make_valid_api_request(MethodName.ONLINE_SCORE, arguments=arguments)
     response, code = get_response(request_data, headers, context, storage_mock)
+
     assert code == HTTPStatus.OK.value
     assert 'score' in response
-    assert isinstance(response['score'], (int, float))
+    assert isinstance(response['score'], float)
+    assert response['score'] == expected_score  # ✅ Now matches correct values
 
 
 def test_handle_online_score__admin_request_ok(
@@ -201,24 +210,40 @@ def test_handle_online_score__admin_request_ok(
 
 
 @pytest.mark.parametrize(
-    'client_ids',
-    [[1, 2, 3], [5], [10, 11, 12]],
+    'client_ids, storage_data, expected_response',
+    [
+        (
+            [1, 2, 3],
+            {'i:1': '["sports"]', 'i:2': '["travel"]', 'i:3': '["music"]'},
+            {'1': ['sports'], '2': ['travel'], '3': ['music']},
+        ),
+        ([5], {'i:5': '["gaming"]'}, {'5': ['gaming']}),
+        ([10, 11, 12], {}, {'10': [], '11': [], '12': []}),  # No cache
+    ],
     ids=[
         'test_handle_clients_interests__multiple_ids',
         'test_handle_clients_interests__single_id',
-        'test_handle_clients_interests__different_ids',
+        'test_handle_clients_interests__no_cache',
     ],
 )
-def test_handle_clients_interests__ok(
+def test_handle_clients_interests__ok(  # noqa: PLR0913
     make_valid_api_request: 'Callable[..., dict[str, Any]]',
     client_ids: list[int],
+    storage_data: dict[str, str],
+    expected_response: dict[str, list[str]],
     headers: dict[str, str],
     context: dict[str, int],
     storage_mock: 'StorageInterface',
 ) -> None:
     """Тестирует `handle_clients_interests` с валидными client_ids."""
+
+    def mock_get(key: str) -> str | None:
+        return storage_data.get(key)
+
+    storage_mock.get.side_effect = mock_get
+
     request_data = make_valid_api_request(method=MethodName.CLIENTS_INTERESTS, arguments={'client_ids': client_ids})
     response, code = get_response(request_data, headers, context, storage_mock)
+
     assert code == HTTPStatus.OK.value
-    assert isinstance(response, dict)
-    assert all(isinstance(interests, list) for interests in response.values())
+    assert response == expected_response

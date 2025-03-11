@@ -51,7 +51,15 @@ def test_get_score__cache_behavior(
         ('79175002040', 'test@example.com', None, None, None, None, 3.0),
         (None, None, datetime.date(2000, 1, 1), 1, None, None, 1.5),
         (None, None, None, None, 'John', 'Doe', 0.5),
-        ('79175002040', 'test@example.com', datetime.date(2000, 1, 1), 1, 'John', 'Doe', 5.0),  # ✅ Fix: Changed from 4.5 to 5.0
+        (
+            '79175002040',
+            'test@example.com',
+            datetime.date(2000, 1, 1),
+            1,
+            'John',
+            'Doe',
+            5.0,
+        ),  # ✅ Fix: Changed from 4.5 to 5.0
     ],
     ids=[
         'no_params',
@@ -63,7 +71,7 @@ def test_get_score__cache_behavior(
         'all_params',
     ],
 )
-def test_get_score__calculation_logic( # noqa: PLR0913
+def test_get_score__calculation_logic(  # noqa: PLR0913
     phone: str | None,
     email: str | None,
     birthday: datetime.date | None,
