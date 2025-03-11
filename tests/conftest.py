@@ -1,3 +1,4 @@
+import os
 from typing import TYPE_CHECKING
 
 import pytest
@@ -47,3 +48,9 @@ def make_valid_api_request() -> 'Callable[..., dict[str, Any]]':
         }
 
     return _create
+
+
+@pytest.fixture(scope='session')
+def docker_compose_file(pytestconfig) -> str:  # noqa: ANN001
+    """Set the correct path for docker-compose.yml in tests/docker/"""
+    return os.path.join(str(pytestconfig.rootdir), 'tests', 'docker', 'docker-compose.yml')
