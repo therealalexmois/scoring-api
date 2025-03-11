@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 class MethodName(str, Enum):
     """Допустимые методы API."""
+
     ONLINE_SCORE = 'online_score'
     CLIENTS_INTERESTS = 'clients_interests'
 
