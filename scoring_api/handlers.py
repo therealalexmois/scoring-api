@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from scoring_api.auth import check_auth
+from scoring_api.auth import is_authenticated
 from scoring_api.constants import ADMIN_SCORE, HTTPStatus
 from scoring_api.requests.exceptions import ValidationError
 from scoring_api.requests.requests import ClientsInterestsRequest, MethodRequest, OnlineScoreRequest
@@ -114,7 +114,7 @@ def method_handler(
     if not req.is_valid():
         return {'error': req.errors}, HTTPStatus.INVALID_REQUEST.value
 
-    if not check_auth(req):
+    if not is_authenticated(req):
         return {'error': HTTPStatus.FORBIDDEN.message}, HTTPStatus.FORBIDDEN.value
 
     method = req.validated_data.get('method')

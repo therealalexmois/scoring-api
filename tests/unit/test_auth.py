@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from scoring_api.auth import check_auth, generate_admin_auth_token, generate_auth_token
+from scoring_api.auth import generate_admin_auth_token, generate_auth_token, is_authenticated
 from scoring_api.constants import ADMIN_SALT, SALT
 from scoring_api.requests.requests import MethodRequest
 
@@ -55,7 +55,7 @@ def test_generate_admin_token() -> None:
         (True, 'admin', '', 'invalid_token', False),
     ],
 )
-def test_check_auth(
+def test_is_authenticated(
     mocker: 'MockFixture', is_admin: bool, login: str, account: str, valid_token: str, expected: bool
 ) -> None:
     """Тестирует проверку аутентификации."""
@@ -63,4 +63,4 @@ def test_check_auth(
     request.is_admin = is_admin
     request.validated_data = {'login': login, 'account': account, 'token': valid_token}
 
-    assert check_auth(request) == expected
+    assert is_authenticated(request) == expected

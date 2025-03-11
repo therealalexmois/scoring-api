@@ -32,7 +32,7 @@ def generate_admin_auth_token() -> str:
     return hashlib.sha512((datetime.datetime.now().strftime('%Y%m%d%H') + ADMIN_SALT).encode('utf-8')).hexdigest()
 
 
-def check_auth(request: 'MethodRequest') -> bool:
+def is_authenticated(request: 'MethodRequest') -> bool:
     """Проверяет, аутентифицирован ли запрос.
 
     Args:
