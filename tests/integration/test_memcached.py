@@ -65,7 +65,7 @@ def test_memcached__cache_get(memcached_storage: MemcacheStorage, key: str) -> N
 
 
 def test_memcached__cache_get_error_handling(mocker: 'MockerFixture', memcached_storage: MemcacheStorage) -> None:
-    """Убедитесь, что cache_get не вызывает исключений, когда Memcached недоступен."""
+    """Тестирует, что cache_get не вызывает исключений, когда Memcached недоступен."""
     mock_get = mocker.patch.object(memcached_storage.client, 'get', side_effect=Exception('Mocked Memcached failure'))
 
     result = memcached_storage.cache_get('any_key')
