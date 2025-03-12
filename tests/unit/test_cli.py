@@ -19,12 +19,6 @@ from scoring_api.cli import parse_arguments, ServerConfig
     ],
 )
 def test_parse_arguments__ok(monkeypatch: pytest.MonkeyPatch, args: list[str], expected: ServerConfig) -> None:
-    """Тестирует разбор аргументов командной строки с корректными значениями.
-
-    Args:
-        monkeypatch: Фикстура для замены `sys.argv`.
-        args: Список аргументов командной строки.
-        expected: Ожидаемый результат.
-    """
+    """Тестирует разбор аргументов командной строки с корректными значениями."""
     monkeypatch.setattr('sys.argv', ['scoring_api'] + args)
     assert parse_arguments() == expected

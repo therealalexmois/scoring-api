@@ -35,7 +35,7 @@ def test_server() -> 'Generator[str]':
 
 @pytest.fixture
 def client() -> 'Generator[httpx.Client]':
-    """HTTP client for sending requests."""
+    """HTTP-клиент для отправки запросов."""
     with httpx.Client() as client:
         yield client
 

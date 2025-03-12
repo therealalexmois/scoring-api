@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 def is_responsive(host: str, port: int) -> bool:
-    """Check if Memcached is ready by attempting a TCP connection."""
+    """Проверяет готовность Memcached, попытавшись установить TCP-соединение."""
     try:
         with socket.create_connection((host, port), timeout=1):
             return True
@@ -22,7 +22,7 @@ def is_responsive(host: str, port: int) -> bool:
 
 @pytest.fixture(scope='session')
 def memcached_container(docker_ip: str, docker_services: 'Services') -> str:
-    """Waits for Memcached to be ready and returns its connection string."""
+    """Ждет, пока Memcached будет готов, и возвращает строку подключения."""
     port = docker_services.port_for('memcached', 11211)
 
     docker_services.wait_until_responsive(timeout=30.0, pause=0.5, check=lambda: is_responsive(docker_ip, port))
@@ -32,7 +32,7 @@ def memcached_container(docker_ip: str, docker_services: 'Services') -> str:
 
 @pytest.fixture
 def memcached_storage(memcached_container) -> MemcacheStorage:
-    """Creates a MemcacheStorage instance using the test container."""
+    """Создает экземпляр MemcacheStorage с помощью тестового контейнера."""
     host, port = memcached_container.split(':')
     return MemcacheStorage(host=host, port=int(port))
 
